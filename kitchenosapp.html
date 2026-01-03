@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <!-- CONFIGURATION MOBILE -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>KitchenEdible</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230f172a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 22c4.97 0 9-4.03 9-9-4.5 0-9-9-9-9-9-4.5 9-9 9c0 4.97 4.03 9 9 9z'/><path d='M12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z'/><path d='M12 9V2'/></svg>">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        /* Reset total pour mobile */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            overflow: hidden;
+            background-color: #f8fafc;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        
+        #root {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            background-color: #f1f5f9;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-in { animation: slideIn 0.3s ease-out forwards; }
+
+        input, select, textarea { font-size: 16px !important; }
+        
+        /* Ticket Effect */
+        .ticket-edge {
+            background-image: radial-gradient(circle, transparent 50%, #ffffff 50%);
+            background-size: 20px 20px;
+            background-position: -10px -10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- SYSTÈME D'ICÔNES ---
+        const Icon = ({ path, size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <g dangerouslySetInnerHTML={{ __html: path }} />
+            </svg>
+        );
+
+        const ICONS = {
+            Leaf: '<path d="M12 22c4.97 0 9-4.03 9-9-4.5 0-9-9-9-9-9-4.5 9-9 9c0 4.97 4.03 9 9 9z"/><path d="M12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/><path d="M12 9V2"/>',
+            Flask: '<path d="M10 2v7.31"/><path d="M14 2v7.31"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/>',
+            Thermometer: '<path d="M14 4v10.54a4 4 0 1 1-8 0V4a4 4 0 0 1 8 0z"/><path d="M10 4v8"/>',
+            Box: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
+            Calculator: '<rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="16" y1="14" x2="16" y2="14"/><line x1="16" y1="18" x2="16" y2="18"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="12" y1="18" x2="12" y2="18"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="8" y1="18" x2="8" y2="18"/>',
+            Plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+            Trash2: '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2-2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>',
+            Check: '<polyline points="20 6 9 17 4 12"/>',
+            X: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+            Clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+            Flame: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+            BookOpen: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+            ArrowLeft: '<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>',
+            ChevronRight: '<polyline points="9 18 15 12 9 6"/>',
+            Search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+            Pencil: '<path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>',
+            Minus: '<line x1="5" y1="12" x2="19" y2="12"/>',
+            Play: '<polygon points="5 3 19 12 5 21 5 3"/>',
+            Pause: '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>',
+            RotateCcw: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+            Droplet: '<path d="M12 2.69l5.74 5.88a6 6 0 0 1-8.48 8.48A6 6 0 0 1 5.53 9.43L12 2.69z"/>',
+            ShoppingCart: '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>',
+            Square: '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>',
+            CheckSquare: '<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>'
+        };
+
+        const Icons = Object.keys(ICONS).reduce((acc, name) => {
+            acc[name] = (props) => <Icon path={ICONS[name]} {...props} />;
+            return acc;
+        }, {});
+
+        const { Leaf, Flask, Thermometer, Box, Calculator, Plus, Trash2, Check, X, Clock, Flame, BookOpen, ArrowLeft, ChevronRight, Search, Pencil, Minus, Play, Pause, RotateCcw, Droplet, ShoppingCart, Square, CheckSquare } = Icons;
+
+        // --- UI Components ---
+        const Button = ({ children, onClick, variant = 'primary', className = '', ...props }) => {
+            const variants = {
+                primary: "bg-slate-900 text-white shadow-lg shadow-slate-200",
+                secondary: "bg-slate-100 text-slate-700 hover:bg-slate-200",
+                ghost: "text-slate-500 hover:bg-slate-50 hover:text-slate-900",
+                danger: "bg-red-50 text-red-500 hover:bg-red-100",
+                outline: "border-2 border-slate-200 text-slate-700 hover:border-slate-900 hover:text-slate-900"
+            };
+            return <button onClick={onClick} className={`px-4 py-3 rounded-xl font-medium transition-all active:scale-95 flex items-center justify-center gap-2 ${variants[variant]} ${className}`} {...props}>{children}</button>;
+        };
+
+        const Input = ({ label, className = '', ...props }) => (
+            <div className="w-full">
+                {label && <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 ml-1">{label}</label>}
+                <input className={`w-full px-4 py-3 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-slate-900 outline-none transition-all ${className}`} {...props} />
+            </div>
+        );
+
+        const TextArea = ({ label, className = '', ...props }) => (
+            <div className="w-full">
+                {label && <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 ml-1">{label}</label>}
+                <textarea className={`w-full px-4 py-3 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-slate-900 outline-none resize-none ${className}`} {...props} />
+            </div>
+        );
+
+        // --- Data (High Times Cookbook Integration - EXTENDED) ---
+        const STARTER_RECIPES = [
+            // --- BASICS (Chapter 1) ---
+            { id: 101, title: 'Simple Cannabutter (High Times)', prepTime: '5', cookTime: '45', ingredients: '1/2 tasse Beurre salé, 7g Fleurs finement moulues', steps: "1. Fondre le beurre à feu doux.\n2. Ajouter les fleurs moulues.\n3. Mijoter 45 min en remuant souvent (ne pas bouillir).\n4. Filtrer à travers une passoire fine en pressant bien.\n5. Utiliser immédiatement ou réfrigérer." },
+            { id: 102, title: 'THC Oil (Huile d\'Olive)', prepTime: '5', cookTime: '45', ingredients: '6 tasses Huile Olive/Canola, 28g Fleurs moulues (ou 56g feuilles)', steps: "1. Chauffer l'huile au bain-marie (feu doux).\n2. Ajouter le cannabis progressivement.\n3. Mijoter 45 min en remuant.\n4. Laisser refroidir et filtrer en pressant bien.\n5. Conserver au frais (2 mois max)." },
+            { id: 103, title: 'Cannacoconut Oil (Coco)', prepTime: '5', cookTime: '60', ingredients: '400g Huile de Coco, 28g Fleurs séchées (ou 56g feuilles), Eau', steps: "1. Mijoter le cannabis dans l'eau (casserole moitié pleine) pendant 1h.\n2. Ajouter l'huile de coco, mijoter encore.\n3. Laisser reposer 2 jours à t° ambiante.\n4. Réchauffer pour fondre, filtrer et presser.\n5. Réfrigérer 24h pour séparer l'huile de l'eau. Jeter l'eau." },
+            { id: 104, title: 'Cannabis Mayonnaise', prepTime: '15', cookTime: '10', ingredients: '1 tasse Huile de Soja infusée, 2 Jaunes d\'oeuf, 1 càc Jus Citron, Vinaigre, Moutarde Dijon', steps: "1. Infuser l'huile au bain-marie avec du cannabis, filtrer et laisser refroidir totalement.\n2. Fouetter jaunes, citron, vinaigre, moutarde.\n3. Ajouter l'huile goutte à goutte en fouettant vigoureusement pour émulsionner.\n4. Conserver 4-5 jours au frigo." },
+            { id: 105, title: 'WAMM Marijuana Flour', prepTime: '30', cookTime: '0', ingredients: '28g Feuilles séchées (minimum)', steps: "1. Sécher parfaitement les feuilles.\n2. Pulvériser au blender (faire des pauses pour ne pas chauffer).\n3. Passer au tamis fin (soie ou métal).\n4. Remettre les morceaux grossiers au blender et répéter 3 fois.\n5. Utiliser cette poudre ultra-fine pour remplacer une partie de la farine dans vos gâteaux." },
+            { id: 106, title: 'Green Avenger Tincture', prepTime: '20', cookTime: '0', ingredients: '100g Shake/Fleurs, 5g Kif, Glycérine Végétale (assez pour couvrir)', steps: "1. Remplir un bocal à 90% avec l'herbe moulue et le kif.\n2. Couvrir de glycérine.\n3. (Optionnel) Chauffer 45min au four à 75°C pour décarboxyler.\n4. Laisser macérer 60 jours dans le noir en secouant parfois.\n5. Filtrer." },
+            
+            // --- APPETIZERS (Chapter 2) ---
+            { id: 201, title: 'Ganja Guacamole', prepTime: '15', cookTime: '0', ingredients: '3 Avocats mûrs, 1 càs Huile THC (Olive), Citron vert, Oignon rouge, Coriandre, Tomate', steps: "1. Écraser les avocats.\n2. Incorporer l'huile infusée.\n3. Ajouter oignon, tomate, coriandre hachés.\n4. Assaisonner sel/poivre/citron." },
+            { id: 202, title: 'Roasted Ganja Garlic Dip', prepTime: '10', cookTime: '40', ingredients: '2 Têtes d\'ail, 1 tasse Haricots blancs, 2 càs Huile THC, Citron, Romarin', steps: "1. Rôtir l'ail au four (40min 200°C).\n2. Mixer l'ail rôti avec les haricots et l'huile infusée.\n3. Ajouter jus de citron et romarin.\n4. Servir avec du pain grillé." },
+            { id: 203, title: 'Hookah Lounge Hummus', prepTime: '15', cookTime: '0', ingredients: '400g Pois chiches, 2 càs Tahini, 2 càs Huile THC, Ail, Citron, Cumin', steps: "1. Mixer pois chiches, tahini, ail et citron.\n2. Ajouter l'huile infusée progressivement.\n3. Saupoudrer de cumin et paprika.\n4. Servir avec pain pita chaud." },
+            { id: 204, title: 'Stuffed Stoned Jalapeño Poppers', prepTime: '20', cookTime: '20', ingredients: '10 Jalapeños, 150g Fromage frais, 50g Cheddar, 2 càs Cannabutter, Bacon', steps: "1. Couper et vider les piments.\n2. Mélanger fromages et Cannabutter.\n3. Farcir les piments.\n4. Enrouler de bacon (optionnel).\n5. Cuire 20min à 200°C." },
+            { id: 205, title: 'Lil’ Snoop Hot Doggy Doggs', prepTime: '10', cookTime: '10', ingredients: 'Mini Saucisses, Pâte feuilletée, Moutarde au Cannabutter', steps: "1. Mélanger moutarde et un peu de Cannabutter fondu.\n2. Enrouler saucisses dans pâte.\n3. Cuire au four jusqu'à doré.\n4. Tremper dans la moutarde magique." },
+
+            // --- MUNCHIE MEALS (Chapter 3) ---
+            { id: 301, title: 'Texas Cannabis Chili', prepTime: '20', cookTime: '120', ingredients: '500g Boeuf haché, 2 càs Cannabutter, Haricots rouges, Tomates, Oignons, Épices Chili', steps: "1. Cuire la viande.\n2. Faire suer oignons dans le Cannabutter.\n3. Tout mélanger dans une cocotte.\n4. Mijoter 2h à feu doux." },
+            { id: 302, title: 'Ganja Granny’s Mac ‘n’ Cheese', prepTime: '20', cookTime: '30', ingredients: 'Macaroni, 4 càs Cannabutter, Farine, Lait, Cheddar, Gruyère, Chapelure', steps: "1. Cuire les pâtes.\n2. Faire un roux (Cannabutter + Farine).\n3. Ajouter lait pour béchamel, puis fromages.\n4. Mélanger pâtes et sauce.\n5. Gratiner au four." },
+            { id: 303, title: 'Cheeto Fried Chicken', prepTime: '20', cookTime: '25', ingredients: 'Blancs de poulet, 1 paquet Cheetos, 2 Oeufs, Farine, 3 càs Cannabutter fondu', steps: "1. Écraser les Cheetos en poudre.\n2. Tremper poulet dans farine, puis oeuf, puis Cheetos.\n3. Disposer sur plaque.\n4. Arroser de Cannabutter fondu.\n5. Cuire 25min à 200°C." },
+            { id: 304, title: 'Red, Green & Gold Rasta Pasta', prepTime: '15', cookTime: '15', ingredients: 'Fusilli tricolores, Poivrons (R/V/J), 3 càs Huile THC, Ail, Parmesan', steps: "1. Cuire les pâtes.\n2. Sauter les poivrons et l'ail dans l'huile infusée (feu moyen).\n3. Mélanger pâtes et légumes.\n4. Beaucoup de parmesan." },
+            { id: 305, title: 'Tom Yum Ganja (Soupe Thaï)', prepTime: '15', cookTime: '20', ingredients: 'Bouillon poulet, Citronnelle, Crevettes, Champignons, 2 càs Huile THC, Pâte Chili', steps: "1. Infuser bouillon avec citronnelle.\n2. Ajouter champignons et crevettes.\n3. Incorporer pâte chili et Huile THC en fin de cuisson.\n4. Coriandre fraîche au service." },
+
+            // --- HIGH HOLIDAYS (Chapter 4) ---
+            { id: 401, title: 'Sexy Ganja Strawberries (St Val)', prepTime: '20', cookTime: '0', ingredients: 'Fraises fraîches, Chocolat noir, 2 càs Cannabutter', steps: "1. Fondre chocolat et Cannabutter au bain-marie.\n2. Tremper les fraises.\n3. Laisser durcir sur papier cuisson au frigo.\n4. Partager... ou pas." },
+            { id: 402, title: 'Green Ganja Smashed Potatoes (St Pat)', prepTime: '15', cookTime: '20', ingredients: '1kg Pommes de terre, 4 càs Cannabutter, Ail, Persil, Crème', steps: "1. Cuire patates à l'eau.\n2. Écraser grossièrement.\n3. Incorporer Cannabutter, crème et ail haché.\n4. Persil pour la couleur verte." },
+            { id: 403, title: 'THC Turkey (Thanksgiving)', prepTime: '30', cookTime: '180', ingredients: 'Dinde entière, 100g Cannabutter, Herbes (Sauge, Thym)', steps: "1. Mélanger Cannabutter et herbes.\n2. Glisser le beurre SOUS la peau de la dinde.\n3. Masser la viande.\n4. Rôtir lentement (arroser avec le jus)." },
+
+            // --- STONER SWEETS (Chapter 5) ---
+            { id: 501, title: 'Classic Cannabis Brownies', prepTime: '15', cookTime: '30', ingredients: '120g Cannabutter, 200g Chocolat noir, 150g Sucre, 3 Oeufs, 100g Farine', steps: "1. Fondre chocolat et Cannabutter.\n2. Fouetter oeufs et sucre.\n3. Incorporer mélange chocolat.\n4. Ajouter farine.\n5. Cuire 25-30min à 180°C." },
+            { id: 502, title: 'Chewy Cannabis Caramels', prepTime: '10', cookTime: '20', ingredients: '1 tasse Cannabutter, 2 tasses Sucre brun, 1 tasse Sirop maïs, 1 boîte Lait concentré, Vanille', steps: "1. Fondre beurre.\n2. Ajouter sucre et sirop.\n3. Ajouter lait progressivement.\n4. Cuire jusqu\'à 118°C (thermomètre bonbon).\n5. Verser dans moule, laisser durcir, couper." },
+            { id: 503, title: 'Pineapple Express Cake', prepTime: '20', cookTime: '40', ingredients: 'Ananas tranches, Cerises, Sucre brun, 1/2 tasse Cannabutter, Pâte à gâteau jaune', steps: "1. Fondre Cannabutter et sucre brun au fond du moule.\n2. Disposer ananas et cerises.\n3. Verser la pâte par dessus.\n4. Cuire 40min à 180°C.\n5. Retourner chaud." },
+            { id: 504, title: 'Ganja Buttercream Frosting', prepTime: '10', cookTime: '0', ingredients: '1/2 tasse Cannabutter mou, 3 tasses Sucre glace, Vanille, 2 càs Lait', steps: "1. Battre le Cannabutter en crème.\n2. Ajouter sucre glace progressivement.\n3. Ajouter lait et vanille.\n4. Fouetter jusqu\'à consistance légère.\n5. Glacer vos gâteaux (refroidis)." },
+            { id: 505, title: 'Fantastical Fudge', prepTime: '10', cookTime: '0', ingredients: '3 tasses Pépites Chocolat, 1 boîte Lait concentré sucré, 4 càs Cannabutter, Noix', steps: "1. Fondre chocolat, lait concentré et Cannabutter au bain-marie.\n2. Retirer du feu, ajouter noix.\n3. Étaler dans un plat carré.\n4. Frigo 2h avant de couper." },
+
+            // --- COCKTAILS (Chapter 6) ---
+            { id: 601, title: 'Shiva’s Sativa Bhang (Inde)', prepTime: '10', cookTime: '20', ingredients: '2 tasses Lait entier, 14g Feuilles/Fleurs, Amandes, Épices (Cardamome, Cannelle), Miel', steps: "1. Chauffer lait et cannabis sans bouillir.\n2. Ajouter épices et amandes pilées.\n3. Mijoter 20 min.\n4. Filtrer et sucrer au miel. Servir glacé." },
+            { id: 602, title: 'Hash Hot Chocolate', prepTime: '5', cookTime: '10', ingredients: 'Lait entier, Cacao poudre, Sucre, 1g Hash (effrité), Crème fouettée', steps: "1. Chauffer le lait (ne pas bouillir).\n2. Ajouter le Hash et fouetter pour dissoudre (le gras du lait aide).\n3. Ajouter cacao et sucre.\n4. Servir avec crème." },
+            { id: 603, title: 'Bonghitters’ Mota Mojito', prepTime: '5', cookTime: '0', ingredients: 'Rhum blanc, Menthe fraîche, Citron vert, Sucre, Eau gazeuse, 1 pipette Teinture (Green Avenger)', steps: "1. Piler menthe, sucre et citron.\n2. Ajouter glace et Rhum.\n3. Ajouter la teinture de cannabis.\n4. Compléter eau gazeuse." },
+            { id: 604, title: 'Creamy Cannabis Smoothie', prepTime: '5', cookTime: '0', ingredients: 'Banane, Yaourt Grec (gras), Miel, 1 càs Cannacoconut Oil, Fraises', steps: "1. Tout mettre dans le blender.\n2. Mixer jusqu\'à lisse.\n3. L\'huile de coco figera légèrement créant des pépites, ou fondra si ingrédients temp. ambiante." }
+        ];
+
+        const PRESETS_DECARB = [
+            { label: 'Four (THC)', temp: '110°C', time: 40, desc: 'Activation standard' },
+            { label: 'Four (CBD)', temp: '110°C', time: 60, desc: 'Plus long pour le CBD' },
+            { label: 'Bain-Marie', temp: '100°C', time: 90, desc: 'Méthode douce (sac sous vide)' },
+            { label: 'Basse T°', temp: '90°C', time: 50, desc: 'Préserve les terpènes' }
+        ];
+
+        function EdibleOS() {
+            const [activeTab, setActiveTab] = useState('recipes');
+            const [selectedRecipe, setSelectedRecipe] = useState(null);
+            const [searchTerm, setSearchTerm] = useState('');
+            
+            // Data Storage - Version v3 pour forcer la mise à jour des recettes
+            const [recipes, setRecipes] = useState(() => JSON.parse(localStorage.getItem('ke_recipes_v3')) || STARTER_RECIPES);
+            const [stash, setStash] = useState(() => JSON.parse(localStorage.getItem('ke_stash_v1')) || []);
+            const [shoppingList, setShoppingList] = useState(() => JSON.parse(localStorage.getItem('ke_shopping_v1')) || []);
+            
+            // Timer Logic
+            const [timerSeconds, setTimerSeconds] = useState(0);
+            const [initialTimer, setInitialTimer] = useState(0);
+            const [isTimerRunning, setIsTimerRunning] = useState(false);
+            const timerRef = useRef(null);
+
+            // Form States
+            const [isFormOpen, setIsFormOpen] = useState(false);
+            const [editingId, setEditingId] = useState(null);
+            const [formData, setFormData] = useState({ title: '', prepTime: '', cookTime: '', ingredients: '', steps: '' });
+            
+            // Stash Form & Edit States
+            const [newItemName, setNewItemName] = useState('');
+            const [newItemType, setNewItemType] = useState('Sativa'); 
+            const [newItemTHC, setNewItemTHC] = useState('');
+            const [editingStashItem, setEditingStashItem] = useState(null);
+
+            // Shopping Logic
+            const [selectedRecipeIds, setSelectedRecipeIds] = useState([]);
+            const [manualItem, setManualItem] = useState('');
+
+            // Calculator State
+            const [calcData, setCalcData] = useState({ grams: '', thc: '', servings: '', loss: '0.88' });
+            const [calcResult, setCalcResult] = useState(null);
+
+            useEffect(() => localStorage.setItem('ke_recipes_v3', JSON.stringify(recipes)), [recipes]);
+            useEffect(() => localStorage.setItem('ke_stash_v1', JSON.stringify(stash)), [stash]);
+            useEffect(() => localStorage.setItem('ke_shopping_v1', JSON.stringify(shoppingList)), [shoppingList]);
+
+            useEffect(() => {
+                if (isTimerRunning && timerSeconds > 0) {
+                    timerRef.current = setInterval(() => setTimerSeconds(p => p - 1), 1000);
+                } else if (timerSeconds === 0) {
+                    setIsTimerRunning(false);
+                    if (timerRef.current) clearInterval(timerRef.current);
+                    if (initialTimer > 0) alert("Décarboxylation terminée !");
+                }
+                return () => clearInterval(timerRef.current);
+            }, [isTimerRunning, timerSeconds]);
+
+            const formatTime = (s) => {
+                const m = Math.floor(s / 60);
+                const sec = s % 60;
+                return `${m}:${sec.toString().padStart(2, '0')}`;
+            };
+
+            // Logic
+            const handleSaveRecipe = () => {
+                if (!formData.title.trim()) return;
+                if (editingId) {
+                    setRecipes(recipes.map(r => r.id === editingId ? { ...r, ...formData } : r));
+                    if (selectedRecipe?.id === editingId) setSelectedRecipe({ ...selectedRecipe, ...formData });
+                } else {
+                    setRecipes([...recipes, { id: Date.now(), ...formData }]);
+                }
+                setIsFormOpen(false);
+            };
+
+            const handleSaveStashEdit = () => {
+                if (!editingStashItem.name.trim()) return;
+                setStash(stash.map(item => item.id === editingStashItem.id ? editingStashItem : item));
+                setEditingStashItem(null);
+            };
+
+            const calculateDosage = () => {
+                const g = parseFloat(calcData.grams) || 0;
+                const p = parseFloat(calcData.thc) || 0;
+                const s = parseFloat(calcData.servings) || 1;
+                const l = parseFloat(calcData.loss) || 0.88;
+                const totalMg = g * 1000 * (p / 100) * l;
+                const perServing = totalMg / s;
+                setCalcResult({ total: Math.round(totalMg), perServing: Math.round(perServing) });
+            };
+
+            const generateShoppingList = () => {
+                const newItems = [];
+                selectedRecipeIds.forEach(id => {
+                    const r = recipes.find(rec => rec.id === id);
+                    if (r) {
+                        r.ingredients.split(',').forEach(ing => {
+                            newItems.push({ id: Date.now() + Math.random(), name: ing.trim(), checked: false });
+                        });
+                    }
+                });
+                setShoppingList([...shoppingList, ...newItems]);
+                setSelectedRecipeIds([]);
+            };
+
+            // Views
+            if (selectedRecipe) {
+                return (
+                    <div className="w-full h-full flex flex-col max-w-md bg-white shadow-2xl animate-in">
+                        <div className="flex-none sticky top-0 bg-white/80 backdrop-blur-md p-4 border-b flex items-center gap-4 z-10">
+                            <button onClick={() => setSelectedRecipe(null)} className="p-2 hover:bg-slate-100 rounded-full"><ArrowLeft size={24} /></button>
+                            <h2 className="font-bold text-lg truncate flex-1">{selectedRecipe.title}</h2>
+                            <button onClick={() => { setEditingId(selectedRecipe.id); setFormData(selectedRecipe); setIsFormOpen(true); }} className="p-2 bg-slate-100 rounded-full"><Pencil size={20} /></button>
+                        </div>
+                        <div className="flex-1 p-6 space-y-8 overflow-y-auto pb-20">
+                            <div className="flex gap-4">
+                                <div className="flex-1 bg-green-50 p-4 rounded-2xl flex flex-col items-center text-green-700"><Clock size={24} /><span className="font-bold">{selectedRecipe.prepTime}m</span></div>
+                                <div className="flex-1 bg-purple-50 p-4 rounded-2xl flex flex-col items-center text-purple-700"><Flame size={24} /><span className="font-bold">{selectedRecipe.cookTime}m</span></div>
+                            </div>
+                            <div><h3 className="font-bold mb-4 flex gap-2"><Box size={20} /> Matériel & Ingrédients</h3><ul className="space-y-2">{selectedRecipe.ingredients.split(',').map((i, k) => <li key={k} className="bg-slate-50 p-2 rounded-lg text-sm">• {i.trim()}</li>)}</ul></div>
+                            <div><h3 className="font-bold mb-4 flex gap-2"><BookOpen size={20} /> Protocole</h3><div className="space-y-4 text-sm text-slate-600 whitespace-pre-line">{selectedRecipe.steps}</div></div>
+                        </div>
+                        {isFormOpen && (
+                            <div className="fixed inset-0 bg-white z-50 flex flex-col p-4 animate-in">
+                                <div className="flex justify-between mb-4"><h3 className="font-bold text-xl">Édition Recette</h3><button onClick={() => setIsFormOpen(false)}><X /></button></div>
+                                <div className="space-y-4 flex-1 overflow-y-auto">
+                                    <Input label="Titre" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
+                                    <div className="flex gap-2"><Input label="Prépa" type="number" value={formData.prepTime} onChange={e => setFormData({...formData, prepTime: e.target.value})} /><Input label="Cuisson" type="number" value={formData.cookTime} onChange={e => setFormData({...formData, cookTime: e.target.value})} /></div>
+                                    <TextArea label="Ingrédients" value={formData.ingredients} onChange={e => setFormData({...formData, ingredients: e.target.value})} />
+                                    <TextArea label="Étapes" className="h-32" value={formData.steps} onChange={e => setFormData({...formData, steps: e.target.value})} />
+                                </div>
+                                <Button onClick={handleSaveRecipe} className="mt-4">Sauvegarder</Button>
+                            </div>
+                        )}
+                    </div>
+                );
+            }
+
+            return (
+                <div className="w-full h-full flex flex-col max-w-md bg-white shadow-2xl relative">
+                    <header className="flex-none px-6 pt-8 pb-4 sticky top-0 bg-white z-10 flex justify-between items-center">
+                        <div className="flex items-center gap-2"><div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center"><Leaf size={18} className="text-white"/></div><h1 className="font-bold tracking-tight">KITCHEN<span className="font-light text-green-700">EDIBLE</span></h1></div>
+                        {isTimerRunning && activeTab !== 'decarb' && <div onClick={() => setActiveTab('decarb')} className="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-mono font-bold animate-pulse cursor-pointer">{formatTime(timerSeconds)}</div>}
+                    </header>
+
+                    <main className="px-6 py-4 flex-1 overflow-y-auto">
+                        {activeTab === 'recipes' && (
+                            <div className="space-y-4 pb-24">
+                                <div className="flex justify-between"><h2 className="text-2xl font-bold">Recettes Infusées</h2><Button onClick={() => {setEditingId(null); setFormData({title:'', prepTime:'', cookTime:'', ingredients:'', steps:''}); setIsFormOpen(true);}} className="rounded-full w-12 h-12 p-0"><Plus /></Button></div>
+                                <div className="relative"><Search className="absolute left-4 top-3.5 text-slate-400" size={20}/><input className="w-full pl-12 pr-4 py-3 rounded-xl bg-slate-100 outline-none" placeholder="Rechercher..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} /></div>
+                                <div className="space-y-3">
+                                    {recipes.filter(r => r.title.toLowerCase().includes(searchTerm.toLowerCase())).map(r => (
+                                        <div key={r.id} onClick={() => setSelectedRecipe(r)} className="bg-white p-4 rounded-2xl border flex justify-between items-center cursor-pointer active:scale-95 transition-all">
+                                            <div><h3 className="font-bold">{r.title}</h3><div className="text-xs text-slate-500 mt-1 flex gap-3"><span>⏱ {r.prepTime}m</span><span>\U0001F4A7 {r.cookTime}m</span></div></div>
+                                            <ChevronRight className="text-slate-300" />
+                                        </div>
+                                    ))}
+                                </div>
+                                {isFormOpen && (
+                                    <div className="fixed inset-0 bg-white z-50 flex flex-col p-4 animate-in">
+                                        <div className="flex justify-between mb-4"><h3 className="font-bold text-xl">Nouvelle Recette</h3><button onClick={() => setIsFormOpen(false)}><X /></button></div>
+                                        <div className="space-y-4 flex-1 overflow-y-auto">
+                                            <Input label="Titre" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
+                                            <div className="flex gap-2"><Input label="Prépa" type="number" value={formData.prepTime} onChange={e => setFormData({...formData, prepTime: e.target.value})} /><Input label="Cuisson" type="number" value={formData.cookTime} onChange={e => setFormData({...formData, cookTime: e.target.value})} /></div>
+                                            <TextArea label="Ingrédients" value={formData.ingredients} onChange={e => setFormData({...formData, ingredients: e.target.value})} />
+                                            <TextArea label="Étapes" className="h-32" value={formData.steps} onChange={e => setFormData({...formData, steps: e.target.value})} />
+                                        </div>
+                                        <Button onClick={handleSaveRecipe} className="mt-4">Enregistrer</Button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'decarb' && (
+                            <div className="space-y-6 pb-24">
+                                <h2 className="text-2xl font-bold flex gap-2"><Thermometer /> Décarboxylation</h2>
+                                <div className="bg-slate-900 text-white p-8 rounded-3xl shadow-xl text-center relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-4 opacity-20"><Flame size={100} /></div>
+                                    <div className="text-7xl font-mono font-bold mb-6 tracking-tighter">{formatTime(timerSeconds)}</div>
+                                    <div className="flex gap-4 justify-center mb-6">
+                                        <Button onClick={() => setIsTimerRunning(!isTimerRunning)} className={`w-16 h-16 rounded-full ${isTimerRunning ? "bg-orange-500" : "bg-green-600 text-white"}`}>{isTimerRunning ? <Pause size={28} /> : <Play size={28} />}</Button>
+                                        <Button onClick={() => {setIsTimerRunning(false); setTimerSeconds(initialTimer);}} className="w-16 h-16 rounded-full bg-slate-700"><RotateCcw size={28} /></Button>
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    <h3 className="font-bold text-slate-400 uppercase text-xs tracking-wider">Presets</h3>
+                                    {PRESETS_DECARB.map((p, i) => (
+                                        <div key={i} onClick={() => { setTimerSeconds(p.time * 60); setInitialTimer(p.time * 60); setIsTimerRunning(false); }} className="bg-white p-4 rounded-xl border hover:border-slate-900 cursor-pointer transition-all active:scale-95 flex justify-between items-center">
+                                            <div><div className="font-bold">{p.label}</div><div className="text-xs text-slate-500">{p.desc}</div></div>
+                                            <div className="text-right"><div className="font-bold text-slate-900">{p.temp}</div><div className="text-xs font-mono bg-slate-100 px-2 py-1 rounded">{p.time} min</div></div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'shopping' && (
+                            <div className="space-y-4 pb-24">
+                                <div className="flex justify-between items-center"><h2 className="text-2xl font-bold flex gap-2"><ShoppingCart /> Provisions</h2><button onClick={() => setShoppingList([])} className="text-xs font-bold text-red-500 bg-red-50 px-3 py-2 rounded-lg">TOUT EFFACER</button></div>
+                                
+                                {/* SELECTEUR DE RECETTES */}
+                                {shoppingList.length === 0 ? (
+                                    <div className="bg-white p-6 rounded-2xl border shadow-sm animate-in">
+                                        <h3 className="font-bold text-lg mb-4 text-center">Préparer une Session</h3>
+                                        <p className="text-sm text-slate-500 text-center mb-6">Sélectionnez les recettes pour générer votre ticket de courses.</p>
+                                        <div className="space-y-2 mb-6 max-h-60 overflow-y-auto">
+                                            {recipes.map(r => (
+                                                <div key={r.id} onClick={() => setSelectedRecipeIds(prev => prev.includes(r.id) ? prev.filter(id => id !== r.id) : [...prev, r.id])} className={`p-3 rounded-xl border flex items-center gap-3 cursor-pointer transition-all ${selectedRecipeIds.includes(r.id) ? 'bg-green-50 border-green-500' : 'bg-slate-50'}`}>
+                                                    <div className={`w-5 h-5 rounded flex items-center justify-center border ${selectedRecipeIds.includes(r.id) ? 'bg-green-600 border-green-600' : 'bg-white border-slate-300'}`}>
+                                                        {selectedRecipeIds.includes(r.id) && <Check size={14} className="text-white" />}
+                                                    </div>
+                                                    <span className="font-medium text-sm">{r.title}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <Button onClick={generateShoppingList} className="w-full" disabled={selectedRecipeIds.length === 0}>Générer le Ticket</Button>
+                                    </div>
+                                ) : (
+                                    /* TICKET DE CAISSE */
+                                    <div className="animate-in">
+                                        <div className="bg-white shadow-xl rounded-none mx-2 mb-6 relative">
+                                            {/* Ticket Header */}
+                                            <div className="bg-slate-900 text-white p-4 text-center">
+                                                <div className="font-mono text-xs uppercase tracking-widest mb-1">KitchenEdible Inc.</div>
+                                                <div className="font-bold text-xl">TICKET PROVISIONS</div>
+                                                <div className="text-[10px] text-slate-400 mt-1">{new Date().toLocaleDateString()} • {shoppingList.length} ITEMS</div>
+                                            </div>
+                                            
+                                            {/* Ticket Body */}
+                                            <div className="p-6 space-y-3 font-mono text-sm bg-white">
+                                                {shoppingList.map(item => (
+                                                    <div key={item.id} className="flex items-start gap-3 group">
+                                                        <div onClick={() => setShoppingList(shoppingList.map(i => i.id === item.id ? {...i, checked: !i.checked} : i))} className="cursor-pointer mt-0.5">
+                                                            {item.checked ? <CheckSquare size={18} className="text-slate-400"/> : <Square size={18} className="text-slate-900"/>}
+                                                        </div>
+                                                        <div className={`flex-1 leading-tight ${item.checked ? 'line-through text-slate-300 decoration-2' : 'text-slate-800'}`}>
+                                                            {item.name}
+                                                        </div>
+                                                        <button onClick={() => setShoppingList(shoppingList.filter(i => i.id !== item.id))} className="text-slate-200 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><X size={16}/></button>
+                                                    </div>
+                                                ))}
+                                                
+                                                {/* Add Manual Item */}
+                                                <div className="border-t border-dashed border-slate-300 pt-4 mt-4 flex gap-2">
+                                                    <input className="flex-1 bg-slate-50 p-2 rounded text-sm outline-none font-mono" placeholder="+ Ajouter item..." value={manualItem} onChange={e => setManualItem(e.target.value)} onKeyDown={e => {
+                                                        if(e.key === 'Enter' && manualItem) {
+                                                            setShoppingList([...shoppingList, {id: Date.now(), name: manualItem, checked: false}]);
+                                                            setManualItem('');
+                                                        }
+                                                    }}/>
+                                                    <button onClick={() => {if(manualItem) {setShoppingList([...shoppingList, {id: Date.now(), name: manualItem, checked: false}]); setManualItem('');}}} className="bg-slate-900 text-white px-3 rounded"><Plus size={16}/></button>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Ticket Footer Effect */}
+                                            <div className="h-4 w-full ticket-edge absolute -bottom-2 left-0"></div>
+                                        </div>
+                                        <div className="text-center">
+                                            <button onClick={() => setShoppingList([])} className="text-xs text-slate-400 underline">Nouvelle Liste</button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'stash' && (
+                            <div className="space-y-4 pb-24">
+                                <div className="flex justify-between"><h2 className="text-2xl font-bold">Stock</h2><button onClick={() => setStash(stash.filter(i => !i.checked))} className="text-xs font-bold text-red-500 bg-red-50 px-3 py-2 rounded-lg">VIDER COCHÉS</button></div>
+                                <div className="bg-white p-4 rounded-xl border space-y-3">
+                                    <Input placeholder="Nom (ex: Lemon Haze)..." value={newItemName} onChange={e => setNewItemName(e.target.value)} />
+                                    <div className="flex gap-2">
+                                        <select value={newItemType} onChange={e => setNewItemType(e.target.value)} className="bg-slate-50 rounded-xl px-4 py-3 outline-none flex-1"><option value="Sativa">Sativa</option><option value="Indica">Indica</option><option value="Hybrid">Hybrid</option></select>
+                                        <Input type="number" placeholder="% THC" className="w-24" value={newItemTHC} onChange={e => setNewItemTHC(e.target.value)} />
+                                    </div>
+                                    <Button onClick={() => {if(newItemName) setStash([...stash, {id:Date.now(), name:newItemName, type:newItemType, thc:newItemTHC, checked:false}]); setNewItemName(''); setNewItemTHC('');}} className="w-full"><Plus /> Ajouter au Stock</Button>
+                                </div>
+                                <div className="space-y-2">
+                                    {stash.map(item => (
+                                        <div key={item.id} onClick={() => setStash(stash.map(i => i.id === item.id ? {...i, checked: !i.checked} : i))} className={`flex items-center gap-3 p-4 rounded-xl border transition-all ${item.checked ? 'bg-slate-50 opacity-50' : 'bg-white'}`}>
+                                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${item.checked ? 'bg-slate-900 border-slate-900' : 'border-slate-300'}`}>{item.checked && <Check size={14} className="text-white"/>}</div>
+                                            <div className="flex-1"><div className={`font-medium ${item.checked ? 'line-through' : ''}`}>{item.name}</div><div className="text-xs flex gap-2 mt-1"><span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.type === 'Sativa' ? 'bg-yellow-100 text-yellow-700' : item.type === 'Indica' ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700'}`}>{item.type}</span>{item.thc && <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">{item.thc}%</span>}</div></div>
+                                            <div className="flex gap-2" onClick={e => e.stopPropagation()}><button onClick={() => setEditingStashItem(item)} className="text-slate-300 hover:text-blue-500"><Pencil size={18}/></button><button onClick={() => setStash(stash.filter(i => i.id !== item.id))} className="text-slate-300 hover:text-red-500"><Trash2 size={18}/></button></div>
+                                        </div>
+                                    ))}
+                                    {stash.length === 0 && <div className="text-center text-slate-400 py-8 italic">Le stock est vide... Triste.</div>}
+                                </div>
+                                {editingStashItem && (
+                                    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-in">
+                                        <div className="bg-white w-full max-w-sm rounded-2xl p-6 shadow-2xl">
+                                            <div className="flex justify-between items-center mb-4"><h3 className="font-bold text-xl">Modifier le Stock</h3><button onClick={() => setEditingStashItem(null)}><X /></button></div>
+                                            <div className="space-y-4">
+                                                <Input label="Nom" value={editingStashItem.name} onChange={e => setEditingStashItem({...editingStashItem, name: e.target.value})} />
+                                                <div className="flex gap-2"><div className="flex-1"><label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 ml-1">Type</label><select value={editingStashItem.type} onChange={e => setEditingStashItem({...editingStashItem, type: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-slate-50 outline-none"><option value="Sativa">Sativa</option><option value="Indica">Indica</option><option value="Hybrid">Hybrid</option></select></div><div className="w-24"><Input label="% THC" type="number" value={editingStashItem.thc} onChange={e => setEditingStashItem({...editingStashItem, thc: e.target.value})} /></div></div>
+                                                <div className="flex gap-2 mt-4"><Button variant="secondary" onClick={() => setEditingStashItem(null)} className="flex-1">Annuler</Button><Button onClick={handleSaveStashEdit} className="flex-1">Valider</Button></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'lab' && (
+                            <div className="space-y-8 pb-24">
+                                <h2 className="text-2xl font-bold flex gap-2"><Flask /> Labo</h2>
+                                <div className="bg-white border p-6 rounded-2xl shadow-sm">
+                                    <h3 className="font-bold text-slate-900 mb-4 flex gap-2 items-center"><Calculator size={20}/> Calculateur de Puissance</h3>
+                                    <div className="space-y-3">
+                                        <div className="flex gap-2"><Input label="Fleurs (g)" type="number" placeholder="ex: 5" value={calcData.grams} onChange={e => setCalcData({...calcData, grams: e.target.value})} /><Input label="THC (%)" type="number" placeholder="ex: 15" value={calcData.thc} onChange={e => setCalcData({...calcData, thc: e.target.value})} /></div>
+                                        <div className="flex gap-2"><Input label="Portions" type="number" placeholder="ex: 12" value={calcData.servings} onChange={e => setCalcData({...calcData, servings: e.target.value})} /><div className="w-full"><label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 ml-1">Perte Décarb</label><select className="w-full px-4 py-3 rounded-xl bg-slate-50 outline-none" value={calcData.loss} onChange={e => setCalcData({...calcData, loss: e.target.value})}><option value="0.88">Standard (12%)</option><option value="1">Aucune (Théorique)</option><option value="0.75">Élevée (25%)</option></select></div></div>
+                                        <Button onClick={calculateDosage} className="w-full mt-2 bg-green-700 hover:bg-green-800">Calculer</Button>
+                                    </div>
+                                    {calcResult && (<div className="mt-6 bg-slate-900 text-white p-4 rounded-xl text-center animate-in"><div className="text-xs text-slate-400 uppercase tracking-wider mb-1">Par Portion</div><div className="text-4xl font-bold text-green-400 mb-2">{calcResult.perServing} <span className="text-lg text-white">mg</span></div><div className="text-xs text-slate-500 border-t border-slate-700 pt-2 mt-2">Total dans le plat : {calcResult.total} mg</div></div>)}
+                                </div>
+                                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                                    <h3 className="font-bold text-slate-600 mb-4 flex gap-2"><Droplet size={18}/> Guide des Ratios</h3>
+                                    <ul className="space-y-3 text-sm text-slate-600"><li className="flex justify-between border-b pb-2"><span>Beurre Fort</span> <span className="font-mono font-bold">1g fleur / 10g beurre</span></li><li className="flex justify-between border-b pb-2"><span>Beurre Moyen</span> <span className="font-mono font-bold">1g fleur / 20g beurre</span></li><li className="flex justify-between border-b pb-2"><span>Huile Coco</span> <span className="font-mono font-bold">1g fleur / 15ml huile</span></li><li className="flex justify-between"><span>Alcool (Tincture)</span> <span className="font-mono font-bold">1g fleur / 20ml alcool</span></li></ul>
+                                </div>
+                            </div>
+                        )}
+                    </main>
+
+                    <nav className="flex-none bg-white border-t px-6 py-4 flex justify-between items-center sticky bottom-0 z-20 pb-8">
+                        {['recipes', 'decarb', 'shopping', 'stash', 'lab'].map(t => (
+                            <button key={t} onClick={() => setActiveTab(t)} className={`flex flex-col items-center gap-1 ${activeTab === t ? 'text-slate-900' : 'text-slate-400'}`}>
+                                {t === 'recipes' && <Leaf size={24} strokeWidth={activeTab === t ? 2.5 : 2} />}
+                                {t === 'decarb' && <Thermometer size={24} strokeWidth={activeTab === t ? 2.5 : 2} />}
+                                {t === 'shopping' && <ShoppingCart size={24} strokeWidth={activeTab === t ? 2.5 : 2} />}
+                                {t === 'stash' && <Box size={24} strokeWidth={activeTab === t ? 2.5 : 2} />}
+                                {t === 'lab' && <Flask size={24} strokeWidth={activeTab === t ? 2.5 : 2} />}
+                                <span className="text-[10px] font-bold uppercase">{t === 'recipes' ? 'Recettes' : t === 'decarb' ? 'Décarb' : t === 'shopping' ? 'Courses' : t === 'stash' ? 'Stock' : 'Labo'}</span>
+                            </button>
+                        ))}
+                    </nav>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<EdibleOS />);
+    </script>
+</body>
+</html>

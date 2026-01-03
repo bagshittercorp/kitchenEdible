@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KitchenOS Edible - Gérez vos Infusions & Dosages</title>
+    <meta name="description" content="KitchenOS Edible : Calculateur de dosage THC, minuteur de décarboxylation et gestion de recettes magiques. Open source et 100% privé.">
+    
+    <!-- Favicon (Feuille stylisée) -->
+    <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230f172a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 22c4.97 0 9-4.03 9-9-4.5 0-9-9-9-9-9-4.5 9-9 9c0 4.97 4.03 9 9 9z'/><path d='M12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z'/><path d='M12 9V2'/></svg>">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #f8fafc; }
+        .hero-bg { background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); }
+        .feature-card:hover { transform: translateY(-5px); transition: all 0.3s ease; }
+        /* Petite touche verte subtile pour le survol */
+        .hover-green:hover { color: #16a34a; }
+    </style>
+</head>
+<body class="text-slate-900 font-sans">
+    <!-- Header -->
+    <header class="bg-white shadow-md sticky top-0 z-10">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center">
+                    <!-- Logo Feuille Tech -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2 22h20"/>
+                        <path d="M12 2v20"/>
+                        <path d="M12 10a5 5 0 0 1 5-5"/>
+                        <path d="M12 10a5 5 0 0 0-5-5"/>
+                        <path d="M12 15a5 5 0 0 1 5 5"/>
+                        <path d="M12 15a5 5 0 0 0-5 5"/>
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold tracking-tight">KITCHEN<span class="font-light text-green-700">EDIBLE</span></h1>
+            </div>
+            <nav class="hidden md:flex space-x-6">
+                <a href="#features" class="text-slate-600 hover:text-slate-900 transition-colors">Le Labo</a>
+                <a href="#about" class="text-slate-600 hover:text-slate-900 transition-colors">Philosophie</a>
+                <!-- LIEN TUTORIEL AJOUTÉ ICI -->
+                <a href="tutorial.html" class="text-slate-600 hover:text-green-700 font-medium transition-colors">Tutoriel</a>
+                <a href="kitchenosapp.html" class="text-white bg-slate-900 px-4 py-2 rounded-lg hover:bg-slate-800 transition-colors">Lancer l'App</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-bg py-20 px-6">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold mb-4 tracking-wider">VERSION 4.2.0</div>
+            <h2 class="text-5xl font-bold text-slate-900 mb-6">La Science de la Cuisine... Alternative</h2>
+            <p class="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
+                Ne cuisinez plus au hasard. Calculez vos dosages en mg, gérez vos temps de décarboxylation et organisez vos sessions. 
+                <span class="italic">Précis, discret et sans installation.</span>
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="kitchenosapp.html" class="bg-slate-900 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-800 transition-colors shadow-lg shadow-green-900/20">
+                    Entrer dans le Labo
+                </a>
+                <a href="tutorial.html" class="border-2 border-slate-900 text-slate-900 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-100 transition-colors">
+                    Comment ça marche ?
+                </a>
+            </div>
+            <p class="text-sm text-slate-500 mt-4">✓ Données Locales (0 Trace) ✓ Calculateur THC ✓ Mode Chill</p>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 px-6 bg-white">
+        <div class="max-w-6xl mx-auto">
+            <h3 class="text-3xl font-bold text-center mb-12">Outils de Précision</h3>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Recettes -->
+                <div class="feature-card bg-slate-50 p-6 rounded-xl border border-slate-200 text-center group">
+                    <div class="w-16 h-16 bg-slate-900 group-hover:bg-green-700 transition-colors rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22c4.97 0 9-4.03 9-9-4.5 0-9-9-9-9-9-4.5 9-9 9c0 4.97 4.03 9 9 9z"/>
+                            <path d="M12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
+                            <path d="M12 9V2"/>
+                        </svg>
+                    </div>
+                    <h4 class="font-bold text-lg mb-2">Recettes Infusées</h4>
+                    <p class="text-slate-600">Beurre de Marrakech, Huile de Coco, Gummies. Notez vos ratios fleurs/matière grasse pour ne jamais rater une fournée.</p>
+                </div>
+
+                <!-- Planning -->
+                <div class="feature-card bg-slate-50 p-6 rounded-xl border border-slate-200 text-center group">
+                    <div class="w-16 h-16 bg-slate-900 group-hover:bg-purple-700 transition-colors rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2v4"/>
+                            <path d="M12 18v4"/>
+                            <path d="M4.93 4.93l2.83 2.83"/>
+                            <path d="M16.24 16.24l2.83 2.83"/>
+                            <path d="M2 12h4"/>
+                            <path d="M18 12h4"/>
+                            <path d="M4.93 19.07l2.83-2.83"/>
+                            <path d="M16.24 7.76l2.83-2.83"/>
+                        </svg>
+                    </div>
+                    <h4 class="font-bold text-lg mb-2">Décarboxylation</h4>
+                    <p class="text-slate-600">Minuteur intelligent avec presets pour four. Activez vos cannabinoïdes à la température parfaite sans les brûler.</p>
+                </div>
+
+                <!-- Courses -->
+                <div class="feature-card bg-slate-50 p-6 rounded-xl border border-slate-200 text-center group">
+                    <div class="w-16 h-16 bg-slate-900 group-hover:bg-yellow-600 transition-colors rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                            <line x1="12" y1="22.08" x2="12" y2="12"/>
+                        </svg>
+                    </div>
+                    <h4 class="font-bold text-lg mb-2">Gestion du Stock</h4>
+                    <p class="text-slate-600">Suivez vos variétés (Sativa/Indica), vos taux de THC/CBD estimés et vos ingrédients de base.</p>
+                </div>
+
+                <!-- Outils -->
+                <div class="feature-card bg-slate-50 p-6 rounded-xl border border-slate-200 text-center group">
+                    <div class="w-16 h-16 bg-slate-900 group-hover:bg-blue-600 transition-colors rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="4" y="2" width="16" height="20" rx="2"/>
+                            <line x1="8" y1="6" x2="16" y2="6"/>
+                            <line x1="16" y1="14" x2="16" y2="14"/>
+                            <line x1="16" y1="18" x2="16" y2="18"/>
+                            <line x1="12" y1="14" x2="12" y2="14"/>
+                            <line x1="12" y1="18" x2="12" y2="18"/>
+                            <line x1="8" y1="14" x2="8" y2="14"/>
+                            <line x1="8" y1="18" x2="8" y2="18"/>
+                        </svg>
+                    </div>
+                    <h4 class="font-bold text-lg mb-2">Calculateur de Dosage</h4>
+                    <p class="text-slate-600">Entrez le % de la fleur et la quantité de beurre. KitchenOS vous dit combien de mg contient chaque cookie.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-20 px-6 bg-slate-50">
+        <div class="max-w-4xl mx-auto text-center">
+            <h3 class="text-3xl font-bold mb-8">Pourquoi KitchenOS Edible ?</h3>
+            <div class="grid md:grid-cols-2 gap-8 text-left">
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+                    <h4 class="font-bold text-xl mb-4 text-slate-900">Zéro Paranoïa (Local)</h4>
+                    <p class="text-slate-600">Vos recettes restent sur votre appareil. Pas de cloud, pas de compte, pas de traces. Ce qui se passe dans la cuisine reste dans la cuisine.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-purple-500">
+                    <h4 class="font-bold text-xl mb-4 text-slate-900">Dosage Scientifique</h4>
+                    <p class="text-slate-600">Fini le "on verra bien". Calculez précisément la puissance de vos créations pour éviter les voyages interstellaires non désirés.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-slate-900">
+                    <h4 class="font-bold text-xl mb-4 text-slate-900">Open Source</h4>
+                    <p class="text-slate-600">Le code est libre. Modifiez-le, améliorez-le, partagez-le. C'est l'esprit de la communauté.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-orange-500">
+                    <h4 class="font-bold text-xl mb-4 text-slate-900">Munchies Ready</h4>
+                    <p class="text-slate-600">Interface claire et gros boutons. Utilisable même quand vos yeux sont à moitié fermés.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download CTA -->
+    <section id="download" class="py-20 px-6 bg-slate-900 text-white relative overflow-hidden">
+        <!-- Petit effet de fumée svg en background (abstrait) -->
+        <svg class="absolute top-0 right-0 opacity-10 w-64 h-64" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#FFFFFF" d="M44.7,-76.4C58.9,-69.2,71.8,-59.1,81.6,-46.6C91.4,-34.1,98.1,-19.2,95.8,-5.3C93.5,8.6,82.2,21.5,71.2,32.8C60.2,44.1,49.5,53.8,37.6,61.6C25.7,69.4,12.6,75.3,-0.9,76.9C-14.4,78.5,-29.9,75.8,-42.9,68.4C-55.9,61,-66.4,48.9,-74.6,35.3C-82.8,21.7,-88.7,6.6,-86.6,-7.6C-84.5,-21.8,-74.4,-35.1,-62.7,-45.3C-51,-55.5,-37.7,-62.6,-24.6,-70.5C-11.5,-78.4,1.4,-87.1,14.7,-88.9C28,-90.7,41.7,-85.6,44.7,-76.4Z" transform="translate(100 100)" />
+        </svg>
+
+        <div class="max-w-4xl mx-auto text-center relative z-10">
+            <h3 class="text-4xl font-bold mb-6">Prêt à Cuisiner ?</h3>
+            <p class="text-xl text-slate-300 mb-8">Utilisez KitchenOS Edible et transformez votre cuisine en dispensaire de qualité.</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="kitchenosapp.html" class="bg-white text-slate-900 px-8 py-4 rounded-xl font-bold text-lg hover:bg-green-50 hover:text-green-900 transition-colors">
+                    Ouvrir l'App
+                </a>
+                <!-- LIEN TUTORIEL AJOUTÉ ICI -->
+                <a href="tutorial.html" class="border-2 border-white text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-slate-900 transition-colors">
+                    Tutoriel Décarb
+                </a>
+            </div>
+            <p class="text-sm text-slate-400 mt-4">Compatible Chrome, Firefox, Safari et Edge (et Tor, évidemment)</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white py-8 px-6 border-t">
+        <div class="max-w-6xl mx-auto text-center">
+            <p class="text-slate-600">&copy; 2025 KitchenOS Edible. Projet open source.</p>
+            <p class="text-sm text-slate-400 mt-2">Attention : L'abus de bonnes choses est... très relaxant. Respectez les lois de votre pays.</p>
+        </div>
+    </footer>
+</body>
+</html>
